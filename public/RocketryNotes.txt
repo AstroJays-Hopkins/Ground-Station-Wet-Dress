@@ -1,0 +1,22 @@
+Differential Pressure Transducal System:
+PTop, PBottom, PBallValve (record but ignore).
+Get measure from PTop, look at saturion table (plug in). Y=mx+b. Pressure corresponds to density.
+Do not do for PBottom.
+PBottom - PTop (raw value).
+Then a calculation, plug difference and density into formula to get estimated mass. 
+
+Display PTop, PBottom, Estimated Mass.
+
+LoadCell: Also measures oxidizer mass.
+Zero-Button like a scale.
+Concern with pressure getting too high. Color changes when too high.
+RealTime - initial measurement vs time. DISPLAY
+Below maybe display how many lbs of oxide needed for optimal.
+
+TC Thermocouples: Value vs Time plot. Talk to Courtney about whether I need to do calculations or they are modifying raw data. 
+CRITICAL MEASUREMENTS: 75 degrees F. 70 threshold. 74 red.
+Change color of displayed values when getting close to critical values. 
+
+Solenoid Valve: On or off. Normally off: no power, then open. Power, then closed. 
+
+Motorized Ball Valves: Display the state of the valve. Dialog (Opening, closed, open...?). Talk to Courtney.
