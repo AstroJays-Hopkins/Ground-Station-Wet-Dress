@@ -67,9 +67,9 @@ def get_data():
 					str(randint(0, 1)))
 				'''
 				
-				data = (str(randint(30, 90)), ' ', str(randint(30,90)), ' ',
+				data = (str(randint(0, 40)), ' ', str(randint(0,40)), ' ',
 					str(randint(450,1100)), ' ', str(randint(450,1100)),' ',
-					str(randint(0, 2)), ' ', str(randint(0, 90)), ' ', str(randint(0,1)), ' ',
+					str(randint(0, 90)), ' ', str(randint(0,3)), ' ',
 					str(randint(0, 1)))
 				data = str().join(data)
 				#print(data)
@@ -93,8 +93,9 @@ def home():
 	global CriticalValue
 	global LC1
 	global LC2
-	global Sol
+	global disconnectState
 	global BallValve
+	global isVenting
 	global timestamp
 
 	ser_data = get_data()
@@ -113,9 +114,10 @@ def home():
 			TC2 = data[1] #Bottom
 			PT1 = data[2]
 			PT2 = data[3]
-			CriticalValue = data[4];
-			#Sol = data[4]
-			LC1 = data[5]
+			#CriticalValue = data[4];
+			LC1 = data[4]
+			isVenting = data[5]
+			disconnectState = data[6]
 			#LC2 = data[6]
 			#BallValve = data[6]
 			#result = {'TC1':TC1,'TC2':TC2,'TC3':TC3,'TC4':TC4,'PT1':PT1,'PT2':PT2,'PT3':PT3,'CriticalCondition':CriticalCondition,'Sol':Sol,'Sol':Sol,'bvStatus':BallValve}
@@ -132,7 +134,7 @@ def getTelem():
 
 		All other functions should be executed when this is called.
 	"""
-	data = {'Temp1':TC1, 'Temp2': TC2, 'PTop':PT1,'PBottom':PT2, 'CV': CriticalValue, 'LC1':LC1}
+	data = {'Temp1':TC1, 'Temp2': TC2, 'PTop':PT1,'PBottom':PT2, 'LC1':LC1, 'Venting':isVenting, 'Disconnect':disconnectState}
 	#data = {'Temp1':TC1,'Temp2':TC2,'Temp3':TC3,'Temp4':TC4,'PTop':PT1,'PBottom':PT2,'P3':PT3,'CriticalCondition':CriticalCondition,'LC1':LC1,'Sol':Sol,'bvStatus':BallValve}
 	return (jsonify(data))
 

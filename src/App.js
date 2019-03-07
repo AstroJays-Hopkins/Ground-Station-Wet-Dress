@@ -37,24 +37,24 @@ class App extends Component {
 
         TempData:[
             {
-				id: "Temp1",
+				id: "Top",
                 color: "steelblue",
                 points: []
             },
 		    {
-				id: "Temp2",
+				id: "Bottom",
                 color: "springgreen",
                 points: []
             },
 			{
-				id: "FinalThreshold",
+				id: "Final Threshold",
 				color: "red",
 				points: []
 			}
         ],
 
-		TempCaution: 70,
-		TempThreshold: 75,
+		TempCaution: 21,    //70 F, 21C
+		TempThreshold: 24,  //75 F, 24C
 		Temp4: 0,
 		Temp3: 0,
         Temp2: 0,
@@ -76,7 +76,7 @@ class App extends Component {
             },
 		    {
 				id: "PBottom",
-                color: "steelblue",
+                color: "springgreen",
                 points: []
             }
         ],
@@ -111,10 +111,10 @@ class App extends Component {
 		LCZero: 0,
 		LCRaw: 0,
 		CritCondition: 0,
-		BallValve: 0,
-		BVColor: '#ffffff',
-		BVOnColor: '#ffff00',
-		BVOffColor: '#000000',
+		Venting: false,
+		VentingColor: '#ffffff',
+		VentingTrueColor: '#ffff00',
+		VentingFalseColor: '#000000',
 		N2OData : [],
     };
 	this.LCButton = this.LCButton.bind(this);
@@ -132,9 +132,9 @@ class App extends Component {
 			this.setState({PTop:data.PTop})
 			this.setState({PBottom:data.PBottom})
 			this.setState({P3:data.PT3})
-			this.setState({SolOn:data.Sol})
+			this.setState({SolOn:data.Disconnect})
 			this.setState({LCRaw:data.LC1})
-			this.setState({BallValve:data.bvStatus})
+			this.setState({Venting: data.Venting > 0})
 			this.setState({CritCondition:data.CriticalCondition})
 		});
 	console.log("RAW DATA:" + this.state.RawData);
@@ -148,13 +148,13 @@ class App extends Component {
   updateTemp() {
     console.log('UpdateTemp: ' + this.state.Temp1 + " " + this.state.Temp2)
 		
-	if(this.state.Temp1 < 70){this.state.currentColTemp1 = this.state.normalCol};
-	if(this.state.Temp1 >= 70){this.state.currentColTemp1 = this.state.cautionCol;};
-    if(this.state.Temp1 > 74){this.state.currentColTemp1 = this.state.alertCol;}; 
+	if(this.state.Temp1 < this.state.TempCaution){this.state.currentColTemp1 = this.state.normalCol};
+	if(this.state.Temp1 >= this.state.TempCaution){this.state.currentColTemp1 = this.state.cautionCol;};
+    if(this.state.Temp1 > this.state.TempThreshold){this.state.currentColTemp1 = this.state.alertCol;}; 
 		
-	if(this.state.Temp2 < 70){this.state.currentColTemp2 = this.state.normalCol};
-	if(this.state.Temp2 >= 70){this.state.currentColTemp2 = this.state.cautionCol;};
-    if(this.state.Temp2 > 74){this.state.currentColTemp2 = this.state.alertCol;}; 
+	if(this.state.Temp2 < this.state.TempCaution){this.state.currentColTemp2 = this.state.normalCol};
+	if(this.state.Temp2 >= this.state.TempCaution){this.state.currentColTemp2 = this.state.cautionCol;};
+    if(this.state.Temp2 > this.state.TempThreshold){this.state.currentColTemp2 = this.state.alertCol;}; 
 	
 	/*
 	if(this.state.Temp3 < 70){this.state.currentColTemp3 = this.state.normalCol};
@@ -172,7 +172,7 @@ class App extends Component {
     //this.setState(update(this.state,{TempData:{3:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp4}]]}}}}));
 	this.setState(update(this.state,{TempDatapoint : {$apply:function(x) {return (x+1);}}}));
 	
-	this.state.TempData[2].points = [{x:this.state.TempDatapoint-10,y:75},{x:this.state.TempDatapoint,y:75}];
+	this.state.TempData[2].points = [{x:this.state.TempDatapoint-10,y:this.state.TempThreshold},{x:this.state.TempDatapoint,y:this.state.TempThreshold}];
 	
 	if(this.state.TempDatapoint > 11){
 		this.state.TempData[0].points = this.state.TempData[0].points.splice(-10);
@@ -188,12 +188,25 @@ class App extends Component {
 
   }
   
-  updateBV(){
-	  	if(this.state.BallValve == 1){this.state.BVColor = this.state.BVOnColor}
-		else{this.state.BVColor = this.state.BVOffColor};
+  updateVenting(){
+	  	if(this.state.Venting){this.state.VentingColor = this.state.VentingTrueColor}
+		else{this.state.VentingColor = this.state.VentingFalseColor};
   }
   
 	updatePressure() {
+		this.setState(update(this.state,{PressureData:{0:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.PTop}]]}}}}));
+		this.setState(update(this.state,{PressureData:{1:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.PBottom}]]}}}}));
+		//this.setState(update(this.state,{TempData:{2:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp3}]]}}}}));
+		//this.setState(update(this.state,{TempData:{3:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp4}]]}}}}));
+		this.setState(update(this.state,{PDatapoint : {$apply:function(x) {return (x+1);}}}));
+	
+		if(this.state.PDatapoint > 10){
+			this.state.PressureData[0].points = this.state.PressureData[0].points.splice(-9);
+			this.state.PressureData[1].points = this.state.PressureData[1].points.splice(-9);
+		//this.state.TempData[2].points = this.state.TempData[2].points.splice(-5);
+		//this.state.TempData[3].points = this.state.TempData[3].points.splice(-5);
+	}
+		/*
 		var Patm = 14.6959;
 		var PTop = this.state.PTop;
 		var PBottom = this.state.PBottom;
@@ -217,7 +230,7 @@ class App extends Component {
 			
 		var tol = 1;
 		var iteration = 0;
-		while(true){
+		while(false){
 			iteration = iteration + 1;
 
 
@@ -269,6 +282,7 @@ class App extends Component {
 				PVapEst = PVapEst * (1 + 0.5 * ((VTankEst - VTank)/VTank));
 			}
 		}
+		*/
 	}
   
   updateLC() {
@@ -277,8 +291,8 @@ class App extends Component {
 	this.setState(update(this.state,{LCDatapoint : {$apply:function(x) {return (x+1);}}}));
 	this.setState(update(this.state,{TempGraphWidth : {$apply:function(x) {return (x+50);}}}));
 	
-	if(this.state.LCDatapoint > 11){
-		this.state.LCData[0].points = this.state.LCData[0].points.splice(-9);
+	if(this.state.LCDatapoint > 10){
+		this.state.LCData[0].points = this.state.LCData[0].points.splice(-10);
 	}
   }
 
@@ -297,8 +311,9 @@ class App extends Component {
 	this.updateTemp();
 	this.updateSol();
 	this.updateLC();
+	this.updatePressure();
 	//this.updatePressure();
-	this.updateBV();
+	this.updateVenting();
   }
 
 
@@ -364,7 +379,7 @@ class App extends Component {
 		<tr>
 		<td>
         	<div className = "title" style={{float:"center"}}>
-          		Solenoid
+          		Fueling
         	</div>
 		</td>
 		<td>
@@ -378,13 +393,13 @@ class App extends Component {
 		<tr>
 		<td>
         	<div className = "title" style={{float:"center", "marginTop":30}}>
-          		Ball Valve
+				Venting: {this.state.Venting}
         	</div>
 		</td>
 		<td>
         	<div style={{float:"center", "marginLeft": 10, "marginTop":30}}>
 				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.BVColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.VentingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
@@ -399,9 +414,9 @@ class App extends Component {
 			id = "TEMP"
 			width={400}
 			height={400}
-			yMax = {'100'}
-			yMin = {'0'}
-			yLabel = "F"
+			yMax = {'40'}
+			yMin = {'-18'}
+			yLabel = "C"
 			xLabel = "100ms"
 			xMin = {this.state.TempDatapoint-10}
 			xMax = {this.state.TempDatapoint}
@@ -417,6 +432,21 @@ class App extends Component {
 	}
 	</td>
 	<td>
+	{
+		<LineChart
+			id = "Pressure"
+			width={400}
+			height={400}
+			yMax = {'1400'}
+			yMin = {'0'}
+			yLabel = "PSI"
+			xLabel = "100ms"
+			xMin = {this.state.PDatapoint-10}
+			xMax = {this.state.PDatapoint}
+			data={this.state.PressureData}
+			showLegends = "True"
+		/>
+    }
 	{
 		<input type="text" name="Temp1" value={"P-Top: " + this.state.PTop} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
 	}
@@ -454,7 +484,7 @@ class App extends Component {
 		<input type="text" name="LoadCellAdjusted" value={"Adjusted: " + (this.state.LCRaw - this.state.LCZero)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
 	}
 	{
-		<input type="text" name="RemainingNeeded" size="30" value={"Remaining NOX Needed: " + (75 - (this.state.LCRaw - this.state.LCZero))} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+		<input type="text" name="RemainingNeeded" size="30" value={"Remaining NOX Needed: " + (35 - (this.state.LCRaw - this.state.LCZero))} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
 	}
 	</td>
 	<td>
