@@ -116,6 +116,12 @@ class App extends Component {
 		VentingTrueColor: '#ffff00',
 		VentingFalseColor: '#000000',
 		N2OData : [],
+		
+		BallValve: false,
+		BVColor: '#ffffff',
+		BVTrueColor: '#ffff00',
+		BVFalseColor: '#000000',
+		
     };
 	this.LCButton = this.LCButton.bind(this);
   }
@@ -123,7 +129,7 @@ class App extends Component {
   //Fetch Telemetry Data
   fetchTelem() {
     console.log('fetchTelem')
-    fetch("http://localhost:5000/getTelem", {headers: new Headers({"Accept": "application/json","Content-Type":"application/json"})}).then(res => {
+    fetch("http://192.168.0.100:5000/getTelem", {headers: new Headers({"Accept": "application/json","Content-Type":"application/json"})}).then(res => { //CHANGE IP IF NECESSARY.
                 return res.json();
         }).then(data => {
 			this.setState({RawData:JSON.stringify(data)})
@@ -136,6 +142,7 @@ class App extends Component {
 			this.setState({LCRaw:data.LC1})
 			this.setState({Venting: data.Venting > 0})
 			this.setState({CritCondition:data.CriticalCondition})
+			this.setState({BallValve: data.BallValve > 0})
 		});
 	console.log("RAW DATA:" + this.state.RawData);
   }
@@ -182,10 +189,14 @@ class App extends Component {
 	}
   }
   
+   updateBallValve() {
+		if(this.state.BallValve){this.state.BVColor = this.state.BVTrueColor}
+		else{this.state.BVColor = this.state.BVFalseColor};
+  }
+  
   updateSol() {
 		if(this.state.SolOn == 1){this.state.solColor = this.state.solOnColor}
 		else{this.state.solColor = this.state.solOffColor};
-
   }
   
   updateVenting(){
@@ -303,7 +314,7 @@ class App extends Component {
 	}
 	console.log(this.state.N2OData);
 	
-	this.interval = setInterval(() => this.updateAll(),100);
+	this.interval = setInterval(() => this.updateAll(),200);
   }
 
   updateAll(){
@@ -311,6 +322,7 @@ class App extends Component {
 	this.updateTemp();
 	this.updateSol();
 	this.updateLC();
+	this.updateBallValve();
 	this.updatePressure();
 	//this.updatePressure();
 	this.updateVenting();
@@ -400,6 +412,20 @@ class App extends Component {
         	<div style={{float:"center", "marginLeft": 10, "marginTop":30}}>
 				{
 					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.VentingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+				}
+        	</div>
+		</td>
+		</tr>
+		<tr>
+				<td>
+        	<div className = "title" style={{float:"center", "marginTop":30}}>
+				Ball Valve: {this.state.BallValve}
+        	</div>
+		</td>
+		<td>
+        	<div style={{float:"center", "marginLeft": 10, "marginTop":30}}>
+				{
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.BVColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
