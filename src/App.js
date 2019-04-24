@@ -28,13 +28,20 @@ const ProgressBar = require('react-progress-bar-plus');
 function helpButton (helpButton) {
   alert("To make sure you are seeing the correct readings please connect your ARDUINO to your computer and expose it to PORT11")
 }
-///
+///gi
 
 class App extends Component {
   constructor(opts){
     super(opts);
     this.state = {
 
+		testData:[
+            {
+				id: "PTop",
+                color: "steelblue",
+                points: [{x: .1, y: 200}, {x: .2, y: 500}, {x: .3, y: 200}]
+            }
+		],
         TempData:[
             {
 				id: "Top",
@@ -93,10 +100,25 @@ class App extends Component {
 		currentColTemp4: '#000000',
 		
 		
-		SolOn: 0,
-		solColor: '#ffffff',
-		solOnColor: '#ffff00',
-		solOffColor: '#000000',
+		Fueling: 0,
+		FuelingColor: '#ffffff',
+		FuelingTrueColor: '#ffff00',
+		FuelingFalseColor: '#000000',
+		
+		ResetRelay: 0,
+		ResetRelayColor: '#ffffff',
+		ResetRelayTrueColor: '#ffff00',
+		ResetRelayFalseColor: '#000000',
+		
+		Ignition: 0,
+		IgnitionColor: '#ffffff',
+		IgnitionTrueColor: '#ffff00',
+		IgnitionFalseColor: '#000000',
+		
+		Disconnect: 0,
+		DisconnectColor: '#ffffff',
+		DisconnectTrueColor: '#ffff00',
+		DisconnectFalseColor: '#000000',
 
 		RawData: "",
 		LCDatapoint: 1,
@@ -137,12 +159,13 @@ class App extends Component {
 			this.setState({Temp2:data.Temp2})
 			this.setState({PTop:data.PTop})
 			this.setState({PBottom:data.PBottom})
-			this.setState({P3:data.PT3})
-			this.setState({SolOn:data.Disconnect})
 			this.setState({LCRaw:data.LC1})
+			this.setState({Fueling:data.Fueling > 0})
 			this.setState({Venting: data.Venting > 0})
-			this.setState({CritCondition:data.CriticalCondition})
+			this.setState({Disconnect: data.Disconnect > 0})
+			this.setState({ResetRelay: data.ResetRelay > 0})
 			this.setState({BallValve: data.BallValve > 0})
+			this.setState({Ignition: data.Ignition > 0}) 
 		});
 	console.log("RAW DATA:" + this.state.RawData);
   }
@@ -153,7 +176,7 @@ class App extends Component {
 
 
   updateTemp() {
-    console.log('UpdateTemp: ' + this.state.Temp1 + " " + this.state.Temp2)
+    //console.log('UpdateTemp: ' + this.state.Temp1 + " " + this.state.Temp2)
 		
 	if(this.state.Temp1 < this.state.TempCaution){this.state.currentColTemp1 = this.state.normalCol};
 	if(this.state.Temp1 >= this.state.TempCaution){this.state.currentColTemp1 = this.state.cautionCol;};
@@ -189,21 +212,36 @@ class App extends Component {
 	}
   }
   
-   updateBallValve() {
+	updateBallValve() {
 		if(this.state.BallValve){this.state.BVColor = this.state.BVTrueColor}
 		else{this.state.BVColor = this.state.BVFalseColor};
-  }
+	}
   
-  updateSol() {
-		if(this.state.SolOn == 1){this.state.solColor = this.state.solOnColor}
-		else{this.state.solColor = this.state.solOffColor};
-  }
+	updateFueling() {
+		if(this.state.Fueling){this.state.FuelingColor = this.state.FuelingTrueColor}
+		else{this.state.FuelingColor = this.state.FuelingFalseColor};
+	}
   
-  updateVenting(){
+	updateVenting(){
 	  	if(this.state.Venting){this.state.VentingColor = this.state.VentingTrueColor}
 		else{this.state.VentingColor = this.state.VentingFalseColor};
-  }
+	}
   
+    updateResetRelay(){
+	  	if(this.state.ResetRelay){this.state.ResetRelayColor = this.state.ResetRelayTrueColor}
+		else{this.state.ResetRelayColor = this.state.ResetRelayFalseColor};
+	}
+  
+    updateDisconnect(){
+	  	if(this.state.Disconnect){this.state.DisconnectColor = this.state.DisconnectTrueColor}
+		else{this.state.DisconnectColor = this.state.DisconnectFalseColor};
+	}
+  
+    updateIgnition(){
+	  	if(this.state.Ignition){this.state.IgnitionColor = this.state.IgnitionTrueColor}
+		else{this.state.IgnitionColor = this.state.IgnitionFalseColor};
+	}
+	
 	updatePressure() {
 		this.setState(update(this.state,{PressureData:{0:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.PTop}]]}}}}));
 		this.setState(update(this.state,{PressureData:{1:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.PBottom}]]}}}}));
@@ -312,7 +350,7 @@ class App extends Component {
 	for(var i = 0; i < this.state.N2OData.length; i++){
 		this.state.N2OData[i] = this.state.N2OData[i].split(",");
 	}
-	console.log(this.state.N2OData);
+	//console.log(this.state.N2OData);
 	
 	this.interval = setInterval(() => this.updateAll(),200);
   }
@@ -320,12 +358,15 @@ class App extends Component {
   updateAll(){
 	this.fetchTelem();
 	this.updateTemp();
-	this.updateSol();
+	this.updateFueling();
 	this.updateLC();
 	this.updateBallValve();
 	this.updatePressure();
 	//this.updatePressure();
 	this.updateVenting();
+	this.updateResetRelay();
+	this.updateDisconnect();
+	this.updateIgnition();
   }
 
 
@@ -368,150 +409,244 @@ class App extends Component {
         <div className="App-intro">
         </div>
 
-	<table width="100%"  style={{"borderWidth":"1px", 'borderStyle':'solid'}}>
+	<table style={{"borderWidth":"0px", 'borderStyle':'solid', overflow:"auto", "borderTopWidth":"1px"}}>
 	<tbody>
-	<tr >
-	<td>
+	<tr>
+		<table width = "100%">
+		<tr>
+		<td width = "5%">
         	<div className = "title" style={{float:"left"}}>
-          		Temperature
-        	</div>
-	</td>
-	<td>
-        	<div className = "title" style={{float:"center"}}>
-          		Pressure
-        	</div>
-	</td>
-	<td>
-        	<div className = "title" style={{float:"center"}}>
-          		Loadcell
-        	</div>
-	</td>
-	<td>
-		<table>
-		<tr>
-		<td>
-        	<div className = "title" style={{float:"center"}}>
-          		Fueling
+          		Fueling:
         	</div>
 		</td>
-		<td>
-        	<div style={{float:"center", "marginLeft": 10}}>
+		<td width = "5%">
+        	<div style={{float:"left", "marginLeft": 10}}>
 				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.solColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.FuelingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
-		</tr>
-		<tr>
-		<td>
-        	<div className = "title" style={{float:"center", "marginTop":30}}>
-				Venting: {this.state.Venting}
+		<td width = "15%">
+        	<div className = "title" style={{float:"left"}}>
+				Disconnect:
         	</div>
 		</td>
-		<td>
-        	<div style={{float:"center", "marginLeft": 10, "marginTop":30}}>
+		<td width = "5%">
+        	<div style={{float:"left", "marginLeft": 10}}>
 				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.VentingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.DisconnectColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
-		</tr>
-		<tr>
-				<td>
-        	<div className = "title" style={{float:"center", "marginTop":30}}>
-				Ball Valve: {this.state.BallValve}
+		<td width = "15%">
+        	<div className = "title" style={{float:"left"}}>
+				Ball&nbsp;Valve:
         	</div>
 		</td>
-		<td>
-        	<div style={{float:"center", "marginLeft": 10, "marginTop":30}}>
+		<td width = "45%">
+        	<div style={{float:"left", "marginLeft": 10}}>
 				{
 					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.BVColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
 		</tr>
+		<tr>
+		<td width = "6%" >
+        	<div className = "title" style={{float:"left"}}>
+				Venting:
+        	</div>
+		</td>
+		<td width = "6%" style={{paddingTop : 20}}>
+        	<div style={{float:"left", "marginLeft": 10}}>
+				{
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.VentingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+				}
+        	</div>
+		</td>
+		<td width = "16%" style={{paddingTop : 20}}>
+        	<div className = "title" style={{float:"left"}}>
+				Reset&nbsp;Relay:
+        	</div>
+		</td>
+		<td width = "6%" style={{paddingTop : 20}}>
+        	<div style={{float:"left", "marginLeft": 10}}>
+				{
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.ResetRelayColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+				}
+        	</div>
+		</td>
+		<td width = "16%" style={{paddingTop : 20}}>
+        	<div className = "title" style={{float:"left"}}>
+				Ignition:
+        	</div>
+		</td>
+		<td width = "6%" style={{paddingTop : 20}}>
+        	<div style={{float:"left", "marginLeft": 10}}>
+				{
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.IgnitionColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+				}
+        	</div>
+		</td>
+		</tr>
 		</table>
-	</td>
+		<div className = "line2">____________________________________________________________________________________________________________________________</div>
 	</tr>
 	<tr>
-	<td style={{float:"left", position:"left", width:400, overflow:"auto"}}>
-	{
-		<LineChart
-			id = "TEMP"
-			width={400}
-			height={400}
-			yMax = {'40'}
-			yMin = {'-18'}
-			yLabel = "C"
-			xLabel = "100ms"
-			xMin = {this.state.TempDatapoint-10}
-			xMax = {this.state.TempDatapoint}
-			data={this.state.TempData}
-			showLegends = "True"
-		/>
-    }
-	{
-		<input type="text" name="Temp1" value={"Sensor 1: " + this.state.Temp1} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp1}} readOnly/>
-	}
-	{
-		<input type="text" name="Temp1" value={"Sensor 2: " + this.state.Temp2} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp2}} readOnly/>
-	}
+	<td style={{float:"left", position:"left", width:"32%", overflow:"auto", marginRight:"0"}}>
+		<table>
+			<tr>
+				<td>
+					<div className = "title" style={{float:"left"}}>
+					Temperature
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					{
+					<LineChart
+						id = "TEMP"
+						width={350}
+						height={400}
+						yMax = {'40'}
+						yMin = {'-18'}
+						yLabel = "C"
+						xLabel = "Time: Seconds"
+						xDisplay = {((x) => parseFloat(x/10).toFixed(1))}
+						xMin = {this.state.TempDatapoint-10}
+						xMax = {this.state.TempDatapoint-1}
+						data={this.state.TempData}
+						pointRadius={1}
+						showLegends = "True"
+						
+					/>
+					}
+				</td>
+				<td>
+				{
+					<input type="text" name="Temp1" value={"TC1:" + parseFloat(this.state.Temp1).toFixed(2)} style={{"width":"80px",  "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp1}} readOnly/>
+				}
+				<br></br>
+				{
+					<input type="text" name="Temp1" value={"TC2:" + parseFloat(this.state.Temp2).toFixed(2)} style={{"width":"80px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp2}} readOnly/>
+				}
+				</td>
+			</tr>
+		</table>
 	</td>
-	<td>
-	{
-		<LineChart
-			id = "Pressure"
-			width={400}
-			height={400}
-			yMax = {'1400'}
-			yMin = {'0'}
-			yLabel = "PSI"
-			xLabel = "100ms"
-			xMin = {this.state.PDatapoint-10}
-			xMax = {this.state.PDatapoint}
-			data={this.state.PressureData}
-			showLegends = "True"
-		/>
-    }
-	{
-		<input type="text" name="Temp1" value={"P-Top: " + this.state.PTop} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
-	}
-	{
-		<input type="text" name="Temp1" value={"P-Bottom: " + this.state.PBottom} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
-	}
+	<td style={{float:"left", position:"left", width:"32%", overflow:"auto"}}>
+		<table>
+			<tr>
+				<td>
+					<div className = "title" style={{float:"left"}}>
+						Pressure
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					{
+					<LineChart
+						id = "Pressure"
+						width={350}
+						height={400}
+						yMax = {'1400'}
+						yMin = {'0'}
+						yLabel = "PSI"
+						xLabel = "Time: Seconds"
+						xMin = {this.state.PDatapoint-10}
+						xDisplay = {((x) => parseFloat(x/10).toFixed(1))}
+						xMax = {this.state.PDatapoint-1}
+						data={this.state.PressureData}
+						showLegends = "True"
+						pointRadius={1}
+						margins = {{top: 50, right : 0, bottom : 50, left : 0 }}
+					/>
+					}
+				</td>
+				<td>
+				{
+					<input type="text" name="Temp1" value={"PTop: " + parseFloat(this.state.PTop).toFixed(2)} style={{"width": "100px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+				}
+				{
+					<input type="text" name="Temp1" value={"PBot: " + parseFloat(this.state.PBottom).toFixed(2)} style={{"width": "100px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+				}
+				</td>
+			</tr>
+		</table>
 	</td>
-	<td style={{float:"left", position:"left", width:400, overflow:"auto"}}>
-	{
-		<LineChart
-			id = "LC"
-			width={400}
-			height={400}
-			yMax = {'100'}
-			yMin = {'0'}
-			xMin = {this.state.LCDatapoint-10}
-			xMax = {this.state.LCDatapoint}
-			yLabel = "LB"
-			xLabel = "100ms"
-			data={this.state.LCData}
-		/>
-				
-    }
-	{
-		<button onClick = {this.LCButton} className = "LCButton" style={{"float":"left"}}>Zero Loadcell
-        </button>
-	}
-	{
-		<input type="text" name="LoadCellRaw" value={"Raw: " + this.state.LCRaw} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
-	}
-	{
-		<input type="text" name="LoadCellZero" value={"Zero: " + this.state.LCZero} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
-	}
-	{
-		<input type="text" name="LoadCellAdjusted" value={"Adjusted: " + (this.state.LCRaw - this.state.LCZero)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
-	}
-	{
-		<input type="text" name="RemainingNeeded" size="30" value={"Remaining NOX Needed: " + (35 - (this.state.LCRaw - this.state.LCZero))} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
-	}
+	<td style={{float:"left", position:"left", width:"30%", overflow:"visible"}}>
+		<table>
+			<tr>
+				<td>
+					<div className = "title" style={{float:"left"}}>
+					Loadcell
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					{
+					<LineChart
+						id = "LC"
+						width={350}
+						height={400}
+						yMax = {'100'}
+						yMin = {'0'}
+						xMin = {this.state.LCDatapoint-10}
+						xMax = {this.state.LCDatapoint-1}
+						xDisplay = {((x) => parseFloat(x/10).toFixed(1))}
+						yLabel = "LB"
+						xLabel = "Time: Seconds"
+						ticks = {10}
+						data={this.state.LCData}
+						pointRadius={1}
+						margins = {{top: 50, right : 0, bottom : 50, left : 0 }}
+					/>
+					}
+				</td>
+				<td>
+					<table>
+					<tr>
+					<td>
+					{
+						<button onClick = {this.LCButton} className = "LCButton" style={{"float":"left"}}>Zero Loadcell</button>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellRaw" value={"Raw: " + parseFloat(this.state.LCRaw).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellZero" value={"Zero: " + parseFloat(this.state.LCZero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellAdjusted" value={"Adjusted: " + parseFloat(this.state.LCRaw - this.state.LCZero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="RemainingNeeded" size="30" value={"NOX To Full: " + parseFloat((35 - (this.state.LCRaw - this.state.LCZero))).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
 	</td>
 	<td>
 	</td>
