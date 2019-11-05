@@ -1,29 +1,13 @@
 import React, {Component} from 'react';
-import ReactDOM from 'react-dom';
 import './App.css';
-import Button from 'react-uikit-button';
-import Dropdown from 'react-dropdown';
 import {N2OFile} from './N2O/N2O.js';
-import base64 from 'base-64';
-import ReactLoading from 'react-loading'
-import Popup from 'react-popup'
 import AstroJLogo from './AstroJLogo.png';
-import SpeedIcon from './SpeedIcon2.png';
-import AltiIcon from './AltiIcon1.png';
-import test from './N2O/N2O_TDProps_USUnits.txt';
-import AnguIcon from './angularIcon.png';
-import gpsIcon from './gpsIcon.png'
-import all from './all.png';
-import ReactSpeedometer from "react-d3-speedometer";
+//import test from './N2O/N2O_TDProps_USUnits.txt';
 import LineChart from 'react-linechart';
 import '../node_modules/react-linechart/dist/styles.css';
 import update from 'immutability-helper';
 
 // import ProgressBar from 'react-progress-bar-plus'
-
-// List of GLobal variables
-var Columns = require ('react-columns');
-const ProgressBar = require('react-progress-bar-plus');
 
 function helpButton (helpButton) {
   alert("To make sure you are seeing the correct readings please connect your ARDUINO to your computer and expose it to PORT11")
@@ -37,20 +21,40 @@ class App extends Component {
 
 		testData:[
             {
-				id: "PTop",
+				id: "P1",
                 color: "steelblue",
                 points: [{x: .1, y: 200}, {x: .2, y: 500}, {x: .3, y: 200}]
             }
 		],
         TempData:[
             {
-				id: "Top",
+				id: "TC-C1",
                 color: "steelblue",
                 points: []
             },
 		    {
-				id: "Bottom",
+				id: "TC-C2",
                 color: "springgreen",
+                points: []
+            },
+            {
+				id: "TC-C3",
+                color: "wheat",
+                points: []
+            },
+		    {
+				id: "TC-R2",
+                color: "violet",
+                points: []
+            },
+            {
+				id: "TC-R1",
+                color: "forestgreen",
+                points: []
+            },
+		    {
+				id: "TC-R3",
+                color: "gold",
                 points: []
             },
 			{
@@ -62,6 +66,8 @@ class App extends Component {
 
 		TempCaution: 21,    //70 F, 21C
 		TempThreshold: 24,  //75 F, 24C
+		Temp6: 0,
+		Temp5: 0,
 		Temp4: 0,
 		Temp3: 0,
         Temp2: 0,
@@ -71,21 +77,27 @@ class App extends Component {
 		
 		
 		
-		PTop: 0,
-		PBottom: 0,
+		P1: 0,
+		P2: 0,
 		P3: 0,
 		PDatapoint: 1,
 		PressureData:[
             {
-				id: "PTop",
+				id: "PT-C1",
                 color: "steelblue",
                 points: []
             },
 		    {
-				id: "PBottom",
+				id: "PT-R1",
                 color: "springgreen",
                 points: []
+            },
+			{
+				id: "PT-R2",
+                color: "wheat",
+                points: []
             }
+			
         ],
 		MFueledDPT: 0,
 
@@ -98,7 +110,9 @@ class App extends Component {
 		currentColTemp2: '#000000',
 		currentColTemp3: '#000000',
 		currentColTemp4: '#000000',
-		
+		currentColTemp5: '#000000',
+		currentColTemp6: '#000000',
+				
 		
 		Fueling: 0,
 		FuelingColor: '#ffffff',
@@ -121,17 +135,36 @@ class App extends Component {
 		DisconnectFalseColor: '#000000',
 
 		RawData: "",
-		LCDatapoint: 1,
-		LCData:[
+		LCMassDatapoint: 1,
+		LCMassData:[
             {
-				id: "LCAdjusted",
+				id: "LCMassAdjusted",
                 color: "steelblue",
                 points: []
             }
         ],
 		
-		LCZero: 0,
-		LCRaw: 0,
+		LCMassZero: 0,
+		LCMassRaw: 0,
+		
+		LCThrustDatapoint: 1,
+		LCThrustData:[
+            {
+				id: "LC-C1",
+                color: "steelblue",
+                points: []
+            },           
+			{
+				id: "LC-C2",
+                color: "springgreen",
+                points: []
+            },
+        ],
+		
+		LCThrust1Zero: 0,
+		LCThrust1Raw: 0,
+		LCThrust2Zero: 0,
+		LCThrust2Raw: 0,
 		CritCondition: 0,
 		Venting: false,
 		VentingColor: '#ffffff',
@@ -145,21 +178,30 @@ class App extends Component {
 		BVFalseColor: '#000000',
 		
     };
-	this.LCButton = this.LCButton.bind(this);
+	this.LCMassButton = this.LCMassButton.bind(this);
+	this.LCThrust1Button = this.LCThrust1Button.bind(this);
+	this.LCThrust2Button = this.LCThrust2Button.bind(this);
   }
 
   //Fetch Telemetry Data
   fetchTelem() {
-    console.log('fetchTelem')
-    fetch("http://192.168.0.100:5000/getTelem", {headers: new Headers({"Accept": "application/json","Content-Type":"application/json"})}).then(res => { //CHANGE IP IF NECESSARY.
+    //console.log('fetchTelem')
+    fetch("http://192.168.1.101:5000/getTelem", {headers: new Headers({"Accept": "application/json","Content-Type":"application/json"})}).then(res => { //CHANGE IP IF NECESSARY.
                 return res.json();
         }).then(data => {
 			this.setState({RawData:JSON.stringify(data)})
 			this.setState({Temp1:data.Temp1})
 			this.setState({Temp2:data.Temp2})
-			this.setState({PTop:data.PTop})
-			this.setState({PBottom:data.PBottom})
-			this.setState({LCRaw:data.LC1})
+			this.setState({Temp3:data.Temp3})
+			this.setState({Temp4:data.Temp4})
+			this.setState({Temp5:data.Temp5})
+			this.setState({Temp6:data.Temp6})
+			this.setState({P1:data.P1})
+			this.setState({P2:data.P2})
+			this.setState({P3:data.P3})
+			this.setState({LCMassRaw:data.LC1})
+			this.setState({LCThrust1Raw:data.LC2})
+			this.setState({LCThrust2Raw:data.LC3})
 			this.setState({Fueling:data.Fueling > 0})
 			this.setState({Venting: data.Venting > 0})
 			this.setState({Disconnect: data.Disconnect > 0})
@@ -170,8 +212,16 @@ class App extends Component {
 	console.log("RAW DATA:" + this.state.RawData);
   }
   
-    LCButton () {
-   		this.state.LCZero = this.state.LCRaw;
+    LCMassButton () {
+   		this.state.LCMassZero = this.state.LCMassRaw;
+	}
+	
+	LCThrust1Button () {
+   		this.state.LCThrust1Zero = this.state.LCThrust1Raw;
+	}
+	
+	LCThrust2Button () {
+   		this.state.LCThrust2Zero = this.state.LCThrust2Raw;
 	}
 
 
@@ -186,29 +236,40 @@ class App extends Component {
 	if(this.state.Temp2 >= this.state.TempCaution){this.state.currentColTemp2 = this.state.cautionCol;};
     if(this.state.Temp2 > this.state.TempThreshold){this.state.currentColTemp2 = this.state.alertCol;}; 
 	
-	/*
-	if(this.state.Temp3 < 70){this.state.currentColTemp3 = this.state.normalCol};
-	if(this.state.Temp3 >= 70){this.state.currentColTemp3 = this.state.cautionCol;};
-    if(this.state.Temp3 > 74){this.state.currentColTemp3 = this.state.alertCol;}; 
+	if(this.state.Temp3 < this.state.TempCaution){this.state.currentColTemp3 = this.state.normalCol};
+	if(this.state.Temp3 >= this.state.TempCaution){this.state.currentColTemp3 = this.state.cautionCol;};
+    if(this.state.Temp3 > this.state.TempThreshold){this.state.currentColTemp3 = this.state.alertCol;}; 
 		
-	if(this.state.Temp4 < 70){this.state.currentColTemp4 = this.state.normalCol};
-	if(this.state.Temp4 >= 70){this.state.currentColTemp4 = this.state.cautionCol;};
-    if(this.state.Temp4 > 74){this.state.currentColTemp4 = this.state.alertCol;}; 
-	*/
+	if(this.state.Temp4 < this.state.TempCaution){this.state.currentColTemp4 = this.state.normalCol};
+	if(this.state.Temp4 >= this.state.TempCaution){this.state.currentColTemp4 = this.state.cautionCol;};
+    if(this.state.Temp4 > this.state.TempThreshold){this.state.currentColTemp4 = this.state.alertCol;}; 
 	
+	if(this.state.Temp5 < this.state.TempCaution){this.state.currentColTemp5 = this.state.normalCol};
+	if(this.state.Temp5 >= this.state.TempCaution){this.state.currentColTemp5 = this.state.cautionCol;};
+    if(this.state.Temp5 > this.state.TempThreshold){this.state.currentColTemp5 = this.state.alertCol;}; 
+		
+	if(this.state.Temp6 < this.state.TempCaution){this.state.currentColTemp6 = this.state.normalCol};
+	if(this.state.Temp6 >= this.state.TempCaution){this.state.currentColTemp6 = this.state.cautionCol;};
+    if(this.state.Temp6 > this.state.TempThreshold){this.state.currentColTemp6 = this.state.alertCol;}; 
+
     this.setState(update(this.state,{TempData:{0:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp1}]]}}}}));
     this.setState(update(this.state,{TempData:{1:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp2}]]}}}}));
-    //this.setState(update(this.state,{TempData:{2:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp3}]]}}}}));
-    //this.setState(update(this.state,{TempData:{3:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp4}]]}}}}));
+    this.setState(update(this.state,{TempData:{2:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp3}]]}}}}));
+    this.setState(update(this.state,{TempData:{3:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp4}]]}}}}));
+    this.setState(update(this.state,{TempData:{4:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp5}]]}}}}));
+    this.setState(update(this.state,{TempData:{5:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp6}]]}}}}));
+	
 	this.setState(update(this.state,{TempDatapoint : {$apply:function(x) {return (x+1);}}}));
 	
-	this.state.TempData[2].points = [{x:this.state.TempDatapoint-10,y:this.state.TempThreshold},{x:this.state.TempDatapoint,y:this.state.TempThreshold}];
+	this.state.TempData[6].points = [{x:this.state.TempDatapoint-10,y:this.state.TempThreshold},{x:this.state.TempDatapoint,y:this.state.TempThreshold}];
 	
 	if(this.state.TempDatapoint > 11){
 		this.state.TempData[0].points = this.state.TempData[0].points.splice(-10);
 		this.state.TempData[1].points = this.state.TempData[1].points.splice(-10);
-		//this.state.TempData[2].points = this.state.TempData[2].points.splice(-5);
-		//this.state.TempData[3].points = this.state.TempData[3].points.splice(-5);
+		this.state.TempData[2].points = this.state.TempData[2].points.splice(-10);
+		this.state.TempData[3].points = this.state.TempData[3].points.splice(-10);
+		this.state.TempData[4].points = this.state.TempData[4].points.splice(-10);
+		this.state.TempData[5].points = this.state.TempData[5].points.splice(-10);
 	}
   }
   
@@ -243,105 +304,37 @@ class App extends Component {
 	}
 	
 	updatePressure() {
-		this.setState(update(this.state,{PressureData:{0:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.PTop}]]}}}}));
-		this.setState(update(this.state,{PressureData:{1:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.PBottom}]]}}}}));
-		//this.setState(update(this.state,{TempData:{2:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp3}]]}}}}));
-		//this.setState(update(this.state,{TempData:{3:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp4}]]}}}}));
+		this.setState(update(this.state,{PressureData:{0:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.P1}]]}}}}));
+		this.setState(update(this.state,{PressureData:{1:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.P2}]]}}}}));
+		this.setState(update(this.state,{PressureData:{2:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.P3}]]}}}}));
 		this.setState(update(this.state,{PDatapoint : {$apply:function(x) {return (x+1);}}}));
 	
 		if(this.state.PDatapoint > 10){
 			this.state.PressureData[0].points = this.state.PressureData[0].points.splice(-9);
 			this.state.PressureData[1].points = this.state.PressureData[1].points.splice(-9);
+			this.state.PressureData[2].points = this.state.PressureData[2].points.splice(-9);
 		//this.state.TempData[2].points = this.state.TempData[2].points.splice(-5);
 		//this.state.TempData[3].points = this.state.TempData[3].points.splice(-5);
-	}
-		/*
-		var Patm = 14.6959;
-		var PTop = this.state.PTop;
-		var PBottom = this.state.PBottom;
-		var PVapEst = this.state.PTop + Patm + 2;
-		
-		console.log("PTOP: " + this.state.PTop);
-		var Rin = 3;
-		var HTank = 42.3;
-		var HTop = 3;
-		var HBot = 3;
-		var g = 9.81
-		
-		var VLiqEst = 1;
-		var VVapEst = 1;
-		var VTank = (Math.PI * Math.pow(Rin,2) * HTank) + ((4.0/3.0)*Math.PI * Math.pow(Rin,3));
-		
-		var HFill = 0;
-		var PVap = 0;
-		var pVap = 0;
-		var pLiq = 0;
-			
-		var tol = 1;
-		var iteration = 0;
-		while(false){
-			iteration = iteration + 1;
-
-
-			var currentIndex = 0;
-			for(var i = 1; i < this.state.N2OData.length; i++){
-				//console.log("ITERATE: " + i + " " + PVapEst + " " + this.state.N2OData[i][1] + " " + this.state.N2OData[i-1][1]);
-				if(this.state.N2OData[i][1] > PVapEst && this.state.N2OData[i-1][1] < PVapEst){
-					currentIndex = i;
-					break;
-				}
-			}
-
-			if(currentIndex == 0){
-				currentIndex = 1;
-			}
-			
-			var pLiqEst = ((this.state.N2OData[currentIndex-1][2] * (this.state.N2OData[currentIndex][1] - PVapEst)) + (this.state.N2OData[currentIndex][2] * (PVapEst - this.state.N2OData[currentIndex-1][1])))/(this.state.N2OData[currentIndex][1] - this.state.N2OData[currentIndex-1][1]);
-			var pVapEst = ((this.state.N2OData[currentIndex-1][3] * (this.state.N2OData[currentIndex][1] - PVapEst)) + (this.state.N2OData[currentIndex][3] * (PVapEst - this.state.N2OData[currentIndex-1][1])))/(this.state.N2OData[currentIndex][1] - this.state.N2OData[currentIndex-1][1]);
-		
-			var HFillEst = (((PTop - PBottom)/g) + (pVapEst * (HTank + HBot)) + (pLiqEst * HBot))/(pVapEst - pLiqEst);
-			
-			if(HTank - HFillEst >= Rin){
-				VLiqEst = Math.PI * Math.pow(Rin,2) * ((2.0/3.0) * Rin + HFillEst);
-				VVapEst = Math.PI * Math.pow(Rin,2) * (HTank - HFillEst - (1/3) * Rin);
-			}
-			else{
-				VLiqEst = Math.PI * ((4/3) * Math.pow(Rin,3) + Math.pow(Rin,2) * (HTank - 2*Rin) - (Math.pow(HTank - HFillEst,2)/3.0) * (3* Rin + HFillEst - HTank));
-				VVapEst = (Math.PI / 3.0) * Math.pow(HTank - HFillEst,2) * (3 * Rin + HFillEst - HTank)
-			}
-			
-			var VTankEst = VLiqEst + VVapEst;
-		
-			console.log("VTANKEST: " + VTankEst);
-			console.log((1-tol)*VTank);
-			console.log((1+tol)*VTank);
-			if( (1-tol)*VTank <= VTankEst && VTankEst <= (1 + tol)*VTank){
-				HFill = HFillEst;
-				PVap = PVapEst;
-				pVap = pVapEst;
-				pLiq = pLiqEst;
-				this.state.MFueledDPT = (pLiq * VLiqEst) + (pVap * VVapEst);
-				console.log("END: " + VTankEst + " " + PVap + " " + pVap + " " + pLiq + " " + this.state.MFueledDPT);
-				break;
-			}
-			else if(VTankEst < (1-tol)*VTank){
-				PVapEst = PVapEst * (1 - 0.5 * ((VTankEst - VTank)/VTank));
-			}
-			else{
-				PVapEst = PVapEst * (1 + 0.5 * ((VTankEst - VTank)/VTank));
-			}
 		}
-		*/
 	}
   
   updateLC() {
-	console.log('UpdateLC')
-    this.setState(update(this.state,{LCData:{0:{points:{$splice:[[this.state.LCDatapoint,1,{x:this.state.LCDatapoint,y:this.state.LCRaw-this.state.LCZero}]]}}}}));
-	this.setState(update(this.state,{LCDatapoint : {$apply:function(x) {return (x+1);}}}));
+	//console.log('UpdateLC')
+    this.setState(update(this.state,{LCMassData:{0:{points:{$splice:[[this.state.LCMassDatapoint,1,{x:this.state.LCMassDatapoint,y:this.state.LCMassRaw-this.state.LCMassZero}]]}}}}));
+	this.setState(update(this.state,{LCMassDatapoint : {$apply:function(x) {return (x+1);}}}));
 	this.setState(update(this.state,{TempGraphWidth : {$apply:function(x) {return (x+50);}}}));
 	
-	if(this.state.LCDatapoint > 10){
-		this.state.LCData[0].points = this.state.LCData[0].points.splice(-10);
+	if(this.state.LCMassDatapoint > 10){
+		this.state.LCMassData[0].points = this.state.LCMassData[0].points.splice(-10);
+	}
+
+	this.setState(update(this.state,{LCThrustData:{0:{points:{$splice:[[this.state.LCThrustDatapoint,1,{x:this.state.LCThrustDatapoint,y:this.state.LCThrust1Raw-this.state.LCThrust1Zero}]]}}}}));
+	this.setState(update(this.state,{LCThrustData:{1:{points:{$splice:[[this.state.LCThrustDatapoint,1,{x:this.state.LCThrustDatapoint,y:this.state.LCThrust2Raw-this.state.LCThrust2Zero}]]}}}}));
+	this.setState(update(this.state,{LCThrustDatapoint : {$apply:function(x) {return (x+1);}}}));
+	
+	if(this.state.LCThrustDatapoint > 10){
+		this.state.LCThrustData[0].points = this.state.LCThrustData[0].points.splice(-10);
+		this.state.LCThrustData[1].points = this.state.LCThrustData[1].points.splice(-10);
 	}
   }
 
@@ -358,14 +351,13 @@ class App extends Component {
   updateAll(){
 	this.fetchTelem();
 	this.updateTemp();
-	this.updateFueling();
+	//this.updateFueling();
 	this.updateLC();
 	this.updateBallValve();
 	this.updatePressure();
-	//this.updatePressure();
 	this.updateVenting();
-	this.updateResetRelay();
-	this.updateDisconnect();
+	//this.updateResetRelay();
+	//this.updateDisconnect();
 	this.updateIgnition();
   }
 
@@ -422,7 +414,7 @@ class App extends Component {
 		<td width = "5%">
         	<div style={{float:"left", "marginLeft": 10}}>
 				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.FuelingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.IgnitionColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
@@ -434,7 +426,7 @@ class App extends Component {
 		<td width = "5%">
         	<div style={{float:"left", "marginLeft": 10}}>
 				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.DisconnectColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.BVColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
@@ -446,45 +438,7 @@ class App extends Component {
 		<td width = "45%">
         	<div style={{float:"left", "marginLeft": 10}}>
 				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.BVColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
-				}
-        	</div>
-		</td>
-		</tr>
-		<tr>
-		<td width = "6%" >
-        	<div className = "title" style={{float:"left"}}>
-				Venting:
-        	</div>
-		</td>
-		<td width = "6%" style={{paddingTop : 20}}>
-        	<div style={{float:"left", "marginLeft": 10}}>
-				{
 					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.VentingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
-				}
-        	</div>
-		</td>
-		<td width = "16%" style={{paddingTop : 20}}>
-        	<div className = "title" style={{float:"left"}}>
-				Reset&nbsp;Relay:
-        	</div>
-		</td>
-		<td width = "6%" style={{paddingTop : 20}}>
-        	<div style={{float:"left", "marginLeft": 10}}>
-				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.ResetRelayColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
-				}
-        	</div>
-		</td>
-		<td width = "16%" style={{paddingTop : 20}}>
-        	<div className = "title" style={{float:"left"}}>
-				Ignition:
-        	</div>
-		</td>
-		<td width = "6%" style={{paddingTop : 20}}>
-        	<div style={{float:"left", "marginLeft": 10}}>
-				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.IgnitionColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
@@ -493,7 +447,7 @@ class App extends Component {
 		<div className = "line2">____________________________________________________________________________________________________________________________</div>
 	</tr>
 	<tr>
-	<td style={{float:"left", position:"left", width:"32%", overflow:"auto", marginRight:"0"}}>
+	<td style={{float:"left", position:"left", width:"24%", overflow:"auto", marginRight:"0"}}>
 		<table>
 			<tr>
 				<td>
@@ -513,7 +467,7 @@ class App extends Component {
 						yMin = {'-18'}
 						yLabel = "C"
 						xLabel = "Time: Seconds"
-						xDisplay = {((x) => parseFloat(x/10).toFixed(1))}
+						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
 						xMin = {this.state.TempDatapoint-10}
 						xMax = {this.state.TempDatapoint-1}
 						data={this.state.TempData}
@@ -525,17 +479,33 @@ class App extends Component {
 				</td>
 				<td>
 				{
-					<input type="text" name="Temp1" value={"TC1:" + parseFloat(this.state.Temp1).toFixed(2)} style={{"width":"80px",  "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp1}} readOnly/>
+					<input type="text" name="Temp1" value={"TC-C1:" + parseFloat(this.state.Temp1).toFixed(2)} style={{"width":"80px",  "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp1}} readOnly/>
 				}
 				<br></br>
 				{
-					<input type="text" name="Temp1" value={"TC2:" + parseFloat(this.state.Temp2).toFixed(2)} style={{"width":"80px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp2}} readOnly/>
+					<input type="text" name="Temp2" value={"TC-C2:" + parseFloat(this.state.Temp2).toFixed(2)} style={{"width":"80px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp2}} readOnly/>
+				}
+				<br></br>			
+				{
+				<input type="text" name="Temp3" value={"TC-C3:" + parseFloat(this.state.Temp3).toFixed(2)} style={{"width":"80px",  "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp3}} readOnly/>
+				}
+				<br></br>
+				{
+					<input type="text" name="Temp4" value={"TC-R2:" + parseFloat(this.state.Temp4).toFixed(2)} style={{"width":"80px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp4}} readOnly/>
+				}
+				<br></br>
+				{
+					<input type="text" name="Temp5" value={"TC-R1:" + parseFloat(this.state.Temp5).toFixed(2)} style={{"width":"80px",  "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp5}} readOnly/>
+				}
+				<br></br>
+				{
+					<input type="text" name="Temp6" value={"TC-R3:" + parseFloat(this.state.Temp6).toFixed(2)} style={{"width":"80px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColTemp6}} readOnly/>
 				}
 				</td>
 			</tr>
 		</table>
 	</td>
-	<td style={{float:"left", position:"left", width:"32%", overflow:"auto"}}>
+	<td style={{float:"left", position:"left", width:"24%", overflow:"auto"}}>
 		<table>
 			<tr>
 				<td>
@@ -549,14 +519,14 @@ class App extends Component {
 					{
 					<LineChart
 						id = "Pressure"
-						width={350}
+						width={325}
 						height={400}
 						yMax = {'1400'}
 						yMin = {'0'}
 						yLabel = "PSI"
 						xLabel = "Time: Seconds"
 						xMin = {this.state.PDatapoint-10}
-						xDisplay = {((x) => parseFloat(x/10).toFixed(1))}
+						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
 						xMax = {this.state.PDatapoint-1}
 						data={this.state.PressureData}
 						showLegends = "True"
@@ -567,21 +537,24 @@ class App extends Component {
 				</td>
 				<td>
 				{
-					<input type="text" name="Temp1" value={"PTop: " + parseFloat(this.state.PTop).toFixed(2)} style={{"width": "100px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+					<input type="text" name="P1" value={"PT-C1: " + parseFloat(this.state.P1).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
 				}
 				{
-					<input type="text" name="Temp1" value={"PBot: " + parseFloat(this.state.PBottom).toFixed(2)} style={{"width": "100px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+					<input type="text" name="P2" value={"PT-R1: " + parseFloat(this.state.P2).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+				}
+				{
+					<input type="text" name="P3" value={"PT-R2: " + parseFloat(this.state.P3).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
 				}
 				</td>
 			</tr>
 		</table>
 	</td>
-	<td style={{float:"left", position:"left", width:"30%", overflow:"visible"}}>
+	<td style={{float:"left", position:"left", width:"32%", overflow:"auto"}}>
 		<table>
 			<tr>
 				<td>
 					<div className = "title" style={{float:"left"}}>
-					Loadcell
+					Loadcell - Mass
 					</div>
 				</td>
 			</tr>
@@ -594,13 +567,13 @@ class App extends Component {
 						height={400}
 						yMax = {'100'}
 						yMin = {'0'}
-						xMin = {this.state.LCDatapoint-10}
-						xMax = {this.state.LCDatapoint-1}
-						xDisplay = {((x) => parseFloat(x/10).toFixed(1))}
+						xMin = {this.state.LCMassDatapoint-10}
+						xMax = {this.state.LCMassDatapoint-1}
+						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
 						yLabel = "LB"
 						xLabel = "Time: Seconds"
 						ticks = {10}
-						data={this.state.LCData}
+						data={this.state.LCMassData}
 						pointRadius={1}
 						margins = {{top: 50, right : 0, bottom : 50, left : 0 }}
 					/>
@@ -611,35 +584,35 @@ class App extends Component {
 					<tr>
 					<td>
 					{
-						<button onClick = {this.LCButton} className = "LCButton" style={{"float":"left"}}>Zero Loadcell</button>
+						<button onClick = {this.LCMassButton} className = "LCMassButton" style={{"float":"left"}}>Zero Loadcell</button>
 					}
 					</td>
 					</tr>
 					<tr>
 					<td>
 					{
-						<input type="text" name="LoadCellRaw" value={"Raw: " + parseFloat(this.state.LCRaw).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+						<input type="text" name="LoadCellRaw" value={"Raw: " + parseFloat(this.state.LCMassRaw).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
 					}
 					</td>
 					</tr>
 					<tr>
 					<td>
 					{
-						<input type="text" name="LoadCellZero" value={"Zero: " + parseFloat(this.state.LCZero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+						<input type="text" name="LoadCellZero" value={"Zero: " + parseFloat(this.state.LCMassZero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
 					}
 					</td>
 					</tr>
 					<tr>
 					<td>
 					{
-						<input type="text" name="LoadCellAdjusted" value={"Adjusted: " + parseFloat(this.state.LCRaw - this.state.LCZero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+						<input type="text" name="LoadCellAdjusted" value={"Adjusted: " + parseFloat(this.state.LCMassRaw - this.state.LCMassZero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
 					}
 					</td>
 					</tr>
 					<tr>
 					<td>
 					{
-						<input type="text" name="RemainingNeeded" size="30" value={"NOX To Full: " + parseFloat((35 - (this.state.LCRaw - this.state.LCZero))).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+						<input type="text" name="RemainingNeeded" size="30" value={"NOX To Full: " + parseFloat((35 - (this.state.LCMassRaw - this.state.LCMassZero))).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
 					}
 					</td>
 					</tr>
@@ -648,7 +621,99 @@ class App extends Component {
 			</tr>
 		</table>
 	</td>
-	<td>
+	<td style={{float:"left", position:"left", width:"24%", overflow:"visible"}}>
+			<table>
+			<tr>
+				<td>
+					<div className = "title" style={{float:"left"}}>
+					Loadcell - Thrust
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					{
+					<LineChart
+						id = "LCThrust"
+						width={350}
+						height={400}
+						yMax = {'100'}
+						yMin = {'0'}
+						xMin = {this.state.LCThrustDatapoint-10}
+						xMax = {this.state.LCThrustDatapoint-1}
+						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
+						yLabel = "LBF"
+						xLabel = "Time: Seconds"
+						ticks = {10}
+						data={this.state.LCThrustData}
+						pointRadius={1}
+						margins = {{top: 50, right : 0, bottom : 50, left : 0 }}
+						showLegends = "True"
+					/>
+					}
+				</td>
+				<td>
+					<table>
+					<tr>
+					<td>
+					{
+						<button onClick = {this.LCThrust1Button} className = "LCThrust1Button" style={{"float":"left"}}>Zero Thrust LC1</button>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellRaw" value={"Raw 1: " + parseFloat(this.state.LCThrust1Raw).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellZero" value={"Zero 1: " + parseFloat(this.state.LCThrust1Zero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellAdjusted" value={"Adjusted 1: " + parseFloat(this.state.LCThrust1Raw - this.state.LCThrust1Zero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<button onClick = {this.LCThrust2Button} className = "LCThrust2Button" style={{"float":"left"}}>Zero Thrust LC2</button>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellRaw" value={"Raw 2: " + parseFloat(this.state.LCThrust2Raw).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellZero" value={"Zero 2: " + parseFloat(this.state.LCThrust2Zero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					<tr>
+					<td>
+					{
+						<input type="text" name="LoadCellAdjusted" value={"Adjusted 2: " + parseFloat(this.state.LCThrust2Raw - this.state.LCThrust2Zero).toFixed(2)} style={{"borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', "float":"left"}} readOnly/>
+					}
+					</td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
 	</td>
 	<td>
 	</td>
