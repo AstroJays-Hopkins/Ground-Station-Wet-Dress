@@ -56,12 +56,7 @@ class App extends Component {
 				id: "TC-R3",
                 color: "gold",
                 points: []
-            },
-			{
-				id: "Final Threshold",
-				color: "red",
-				points: []
-			}
+            }
         ],
 
 		TempCaution: 21,    //70 F, 21C
@@ -76,7 +71,7 @@ class App extends Component {
         TempDatapoint: 1,
 		
 		
-		
+		PressureThreshold: 800,
 		P1: 0,
 		P2: 0,
 		P3: 0,
@@ -96,8 +91,12 @@ class App extends Component {
 				id: "PT-R2",
                 color: "wheat",
                 points: []
-            }
-			
+            },
+			{
+				id: "Final Threshold",
+				color: "red",
+				points: []
+			}
         ],
 		MFueledDPT: 0,
 
@@ -112,7 +111,10 @@ class App extends Component {
 		currentColTemp4: '#000000',
 		currentColTemp5: '#000000',
 		currentColTemp6: '#000000',
-				
+			
+		currentColP1: '#000000',
+		currentColP2: '#000000',
+		currentColP3: '#000000',			
 		
 		Fueling: 0,
 		FuelingColor: '#ffffff',
@@ -227,7 +229,8 @@ class App extends Component {
 
   updateTemp() {
     //console.log('UpdateTemp: ' + this.state.Temp1 + " " + this.state.Temp2)
-		
+	
+	/*
 	if(this.state.Temp1 < this.state.TempCaution){this.state.currentColTemp1 = this.state.normalCol};
 	if(this.state.Temp1 >= this.state.TempCaution){this.state.currentColTemp1 = this.state.cautionCol;};
     if(this.state.Temp1 > this.state.TempThreshold){this.state.currentColTemp1 = this.state.alertCol;}; 
@@ -251,7 +254,8 @@ class App extends Component {
 	if(this.state.Temp6 < this.state.TempCaution){this.state.currentColTemp6 = this.state.normalCol};
 	if(this.state.Temp6 >= this.state.TempCaution){this.state.currentColTemp6 = this.state.cautionCol;};
     if(this.state.Temp6 > this.state.TempThreshold){this.state.currentColTemp6 = this.state.alertCol;}; 
-
+	*/
+	
     this.setState(update(this.state,{TempData:{0:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp1}]]}}}}));
     this.setState(update(this.state,{TempData:{1:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp2}]]}}}}));
     this.setState(update(this.state,{TempData:{2:{points:{$splice:[[this.state.TempDatapoint,1,{x:this.state.TempDatapoint,y:this.state.Temp3}]]}}}}));
@@ -261,7 +265,7 @@ class App extends Component {
 	
 	this.setState(update(this.state,{TempDatapoint : {$apply:function(x) {return (x+1);}}}));
 	
-	this.state.TempData[6].points = [{x:this.state.TempDatapoint-10,y:this.state.TempThreshold},{x:this.state.TempDatapoint,y:this.state.TempThreshold}];
+	//this.state.TempData[6].points = [{x:this.state.TempDatapoint-10,y:this.state.TempThreshold},{x:this.state.TempDatapoint,y:this.state.TempThreshold}];
 	
 	if(this.state.TempDatapoint > 11){
 		this.state.TempData[0].points = this.state.TempData[0].points.splice(-10);
@@ -307,12 +311,35 @@ class App extends Component {
 		this.setState(update(this.state,{PressureData:{0:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.P1}]]}}}}));
 		this.setState(update(this.state,{PressureData:{1:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.P2}]]}}}}));
 		this.setState(update(this.state,{PressureData:{2:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.P3}]]}}}}));
+		this.setState(update(this.state,{PressureData:{3:{points:{$splice:[[this.state.PDatapoint,1,{x:this.state.PDatapoint,y:this.state.PressureThreshold}]]}}}}));
 		this.setState(update(this.state,{PDatapoint : {$apply:function(x) {return (x+1);}}}));
 	
+		if(this.state.P1 < this.state.PressureThreshold){
+			this.state.currentColP1 = this.state.normalCol;
+		} else{
+			this.state.currentColP1 = this.state.alertCol;
+		}
+		
+		if(this.state.P2 < this.state.PressureThreshold){
+			this.state.currentColP2 = this.state.normalCol;
+		} else{
+			this.state.currentColP2 = this.state.alertCol;
+		}
+		
+		if(this.state.P3 < this.state.PressureThreshold){
+			this.state.currentColP3 = this.state.normalCol;
+		} else{
+			this.state.currentColP3 = this.state.alertCol;
+		}
+		
+		
+		
+		
 		if(this.state.PDatapoint > 10){
 			this.state.PressureData[0].points = this.state.PressureData[0].points.splice(-9);
 			this.state.PressureData[1].points = this.state.PressureData[1].points.splice(-9);
 			this.state.PressureData[2].points = this.state.PressureData[2].points.splice(-9);
+			this.state.PressureData[3].points = this.state.PressureData[3].points.splice(-9);
 		//this.state.TempData[2].points = this.state.TempData[2].points.splice(-5);
 		//this.state.TempData[3].points = this.state.TempData[3].points.splice(-5);
 		}
@@ -521,7 +548,7 @@ class App extends Component {
 						id = "Pressure"
 						width={325}
 						height={400}
-						yMax = {'1400'}
+						yMax = {'1000'}
 						yMin = {'0'}
 						yLabel = "PSI"
 						xLabel = "Time: Seconds"
@@ -537,13 +564,13 @@ class App extends Component {
 				</td>
 				<td>
 				{
-					<input type="text" name="P1" value={"PT-C1: " + parseFloat(this.state.P1).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+					<input type="text" name="P1" value={"PT-C1: " + parseFloat(this.state.P1).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColP1}} readOnly/>
 				}
 				{
-					<input type="text" name="P2" value={"PT-R1: " + parseFloat(this.state.P2).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+					<input type="text" name="P2" value={"PT-R1: " + parseFloat(this.state.P2).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColP2}} readOnly/>
 				}
 				{
-					<input type="text" name="P3" value={"PT-R2: " + parseFloat(this.state.P3).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold'}} readOnly/>
+					<input type="text" name="P3" value={"PT-R2: " + parseFloat(this.state.P3).toFixed(2)} style={{"width": "90px", "borderWidth":"0px", 'borderStyle':'solid', 'fontWeight': 'bold', 'color': this.state.currentColP3}} readOnly/>
 				}
 				</td>
 			</tr>
@@ -637,7 +664,7 @@ class App extends Component {
 						id = "LCThrust"
 						width={350}
 						height={400}
-						yMax = {'100'}
+						yMax = {'800'}
 						yMin = {'0'}
 						xMin = {this.state.LCThrustDatapoint-10}
 						xMax = {this.state.LCThrustDatapoint-1}
