@@ -378,7 +378,7 @@ class App extends Component {
 	}
 	//console.log(this.state.N2OData);
 	
-	this.interval = setInterval(() => this.updateAll(),200);
+	this.interval = setInterval(() => this.updateAll(),500);
   }
 
   updateAll(){
@@ -513,7 +513,7 @@ class App extends Component {
 						yMin = {'-18'}
 						yLabel = "C"
 						xLabel = "Time: Seconds"
-						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
+						xDisplay = {((x) => parseFloat(x/2).toFixed(1))}
 						xMin = {this.state.TempDatapoint-10}
 						xMax = {this.state.TempDatapoint-1}
 						data={this.state.TempData}
@@ -572,7 +572,7 @@ class App extends Component {
 						yLabel = "PSI"
 						xLabel = "Time: Seconds"
 						xMin = {this.state.PDatapoint-10}
-						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
+						xDisplay = {((x) => parseFloat(x/2).toFixed(1))}
 						xMax = {this.state.PDatapoint-1}
 						data={this.state.PressureData}
 						showLegends = "True"
@@ -615,7 +615,7 @@ class App extends Component {
 						yMin = {'0'}
 						xMin = {this.state.LCMassDatapoint-10}
 						xMax = {this.state.LCMassDatapoint-1}
-						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
+						xDisplay = {((x) => parseFloat(x/2).toFixed(1))}
 						yLabel = "LB"
 						xLabel = "Time: Seconds"
 						ticks = {10}
@@ -687,7 +687,7 @@ class App extends Component {
 						yMin = {'0'}
 						xMin = {this.state.LCThrustDatapoint-10}
 						xMax = {this.state.LCThrustDatapoint-1}
-						xDisplay = {((x) => parseFloat(x/5).toFixed(1))}
+						xDisplay = {((x) => parseFloat(x/2).toFixed(1))}
 						yLabel = "LBF"
 						xLabel = "Time: Seconds"
 						ticks = {10}
