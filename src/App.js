@@ -174,8 +174,10 @@ class App extends Component {
 		VentingFalseColor: '#000000',
 		N2OData : [],
 		
+		BallValveMoving: false,
 		BallValve: false,
 		BVColor: '#ffffff',
+		BVMovingColor: '#ffffff',
 		BVTrueColor: '#ffff00',
 		BVFalseColor: '#000000',
 		
@@ -206,10 +208,11 @@ class App extends Component {
 			this.setState({LCThrust2Raw:data.LC3})
 			this.setState({Fueling:data.Fueling > 0})
 			this.setState({Venting: data.Venting > 0})
-			this.setState({Disconnect: data.Disconnect > 0})
-			this.setState({ResetRelay: data.ResetRelay > 0})
+			//this.setState({Disconnect: data.Disconnect > 0})
+			this.setState({BallValveMoving: data.BallValveMoving > 0})
+			//this.setState({ResetRelay: data.ResetRelay > 0})
 			this.setState({BallValve: data.BallValve > 0})
-			this.setState({Ignition: data.Ignition > 0}) 
+			//this.setState({Ignition: data.Ignition > 0}) 
 		});
 	console.log("RAW DATA:" + this.state.RawData);
   }
@@ -280,6 +283,9 @@ class App extends Component {
 	updateBallValve() {
 		if(this.state.BallValve){this.state.BVColor = this.state.BVTrueColor}
 		else{this.state.BVColor = this.state.BVFalseColor};
+		
+		if(this.state.BallValveMoving){this.state.BVMovingColor = this.state.BVTrueColor}
+		else{this.state.BVMovingColor = this.state.BVFalseColor};
 	}
   
 	updateFueling() {
@@ -378,14 +384,15 @@ class App extends Component {
   updateAll(){
 	this.fetchTelem();
 	this.updateTemp();
-	//this.updateFueling();
 	this.updateLC();
-	this.updateBallValve();
 	this.updatePressure();
+	
+	this.updateFueling();
+	this.updateBallValve();
 	this.updateVenting();
 	//this.updateResetRelay();
 	//this.updateDisconnect();
-	this.updateIgnition();
+	//this.updateIgnition();
   }
 
 
@@ -441,13 +448,25 @@ class App extends Component {
 		<td width = "5%">
         	<div style={{float:"left", "marginLeft": 10}}>
 				{
-					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.IgnitionColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.FuelingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
 				}
         	</div>
 		</td>
 		<td width = "15%">
         	<div className = "title" style={{float:"left"}}>
-				Disconnect:
+				Ball&nbsp;Valve&nbsp;Moving:
+        	</div>
+		</td>
+		<td width = "5%">
+        	<div style={{float:"left", "marginLeft": 10}}>
+				{
+					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.BVMovingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
+				}
+        	</div>
+		</td>
+		<td width = "15%">
+        	<div className = "title" style={{float:"left"}}>
+				Ball&nbsp;Valve&nbsp;Open:
         	</div>
 		</td>
 		<td width = "5%">
@@ -457,12 +476,12 @@ class App extends Component {
 				}
         	</div>
 		</td>
-		<td width = "15%">
+		<td width = "10%">
         	<div className = "title" style={{float:"left"}}>
-				Ball&nbsp;Valve:
+				Venting:
         	</div>
 		</td>
-		<td width = "45%">
+		<td width = "40%">
         	<div style={{float:"left", "marginLeft": 10}}>
 				{
 					<span style={{  "height":46, "width": 46, "backgroundColor": this.state.VentingColor, "borderRadius": "50%", "display": "inline-block", "marginBottom":-30}}></span>
