@@ -206,12 +206,12 @@ class App extends Component {
 			this.setState({LCMassRaw:data.LC1})
 			this.setState({LCThrust1Raw:data.LC2})
 			this.setState({LCThrust2Raw:data.LC3})
-			this.setState({Fueling:data.Fueling > 0})
-			this.setState({Venting: data.Venting > 0})
+			this.setState({Fueling:data.Fueling})
+			this.setState({Venting: data.Venting})
 			//this.setState({Disconnect: data.Disconnect > 0})
-			this.setState({BallValveMoving: data.BallValveMoving > 0})
+			this.setState({BallValveMoving: data.BallValveMoving})
 			//this.setState({ResetRelay: data.ResetRelay > 0})
-			this.setState({BallValve: data.BallValve > 0})
+			this.setState({BallValve: data.BallValve})
 			//this.setState({Ignition: data.Ignition > 0}) 
 		});
 	console.log("RAW DATA:" + this.state.RawData);
